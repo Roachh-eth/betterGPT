@@ -99,6 +99,26 @@ input[type="range"] {
   color: var(--muted);
 }
 
+.links {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.links a {
+  font-size: 11px;
+  color: #ffb067;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 138, 31, 0.4);
+  padding-bottom: 1px;
+}
+
+.links a:hover {
+  color: #ffd2a5;
+  border-bottom-color: rgba(255, 138, 31, 0.8);
+}
+
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
