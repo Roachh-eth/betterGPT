@@ -13,6 +13,9 @@
   let baselineHeapBytes = null;
   let hideQueue = [];
   let hideQueueScheduled = false;
+  let hideQueueTimer = null;
+  let observerDebounceTimer = null;
+  let lastRelevantMutationAt = 0;
 
   const records = new Map();
   const forceVisibleUntil = new Map();
@@ -56,7 +59,7 @@
     chrome.runtime.sendMessage({ type: "setBadge", active: Boolean(active) });
   }
 
-  function getMessageElements() {
+  function getMessageElements(main) {
     const selectors = [
       "article[data-testid^='conversation-turn-']",
       "main article[data-testid*='conversation-turn']",
@@ -65,7 +68,7 @@
 
     let nodes = [];
     for (const selector of selectors) {
-      const found = Array.from(document.querySelectorAll(selector));
+      const found = Array.from(main.querySelectorAll(selector));
       if (found.length >= 2) {
         nodes = found;
         break;
@@ -73,23 +76,18 @@
     }
 
     if (nodes.length === 0) {
-      const main = document.querySelector("main");
-      if (main) nodes = Array.from(main.querySelectorAll("article"));
+      nodes = Array.from(main.querySelectorAll("article"));
     }
 
+    const seen = new Set();
     const deduped = [];
     for (const node of nodes) {
       if (!(node instanceof HTMLElement)) continue;
       if (!node.isConnected || node.closest("aside, nav, header, footer")) continue;
-      if (!deduped.some((existing) => existing.contains(node))) {
-        deduped.push(node);
-      }
+      if (seen.has(node)) continue;
+      seen.add(node);
+      deduped.push(node);
     }
-
-    deduped.sort((a, b) => {
-      if (a === b) return 0;
-      return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-    });
 
     return deduped;
   }
@@ -144,15 +142,13 @@
     record.height = el.getBoundingClientRect().height || el.offsetHeight || 52;
     const topLevelChildren = Math.max(1, el.childElementCount);
     record.removedNodes = topLevelChildren * 10;
-    const fragment = document.createDocumentFragment();
+    const range = document.createRange();
+    range.selectNodeContents(el);
 
     suppressObserver = true;
-    while (el.firstChild) {
-      fragment.appendChild(el.firstChild);
-    }
-    record.fragment = fragment;
+    record.fragment = range.extractContents();
     record.placeholder = makePlaceholder(record);
-    el.appendChild(record.placeholder);
+    el.replaceChildren(record.placeholder);
     suppressObserver = false;
 
     record.dehydrated = true;
@@ -162,8 +158,11 @@
     if (!record || !record.dehydrated || !record.element || !record.element.isConnected) return;
 
     suppressObserver = true;
-    if (record.placeholder?.isConnected) record.placeholder.remove();
-    if (record.fragment) record.element.appendChild(record.fragment);
+    if (record.fragment) {
+      record.element.replaceChildren(record.fragment);
+    } else if (record.placeholder?.isConnected) {
+      record.placeholder.remove();
+    }
     suppressObserver = false;
 
     record.placeholder = null;
@@ -172,8 +171,17 @@
     record.removedNodes = 0;
   }
 
-  function scheduleHideQueue() {
-    if (hideQueueScheduled) return;
+  function scheduleHideQueue(delayMs = 0) {
+    if (hideQueueScheduled || hideQueueTimer) return;
+    if (delayMs > 0) {
+      hideQueueTimer = setTimeout(() => {
+        hideQueueTimer = null;
+        if (hideQueueScheduled) return;
+        hideQueueScheduled = true;
+        requestAnimationFrame(processHideQueue);
+      }, delayMs);
+      return;
+    }
     hideQueueScheduled = true;
     requestAnimationFrame(processHideQueue);
   }
@@ -182,7 +190,12 @@
     hideQueueScheduled = false;
     if (hideQueue.length === 0) return;
 
-    const batchSize = 6;
+    if (Date.now() - lastRelevantMutationAt < 600) {
+      scheduleHideQueue(140);
+      return;
+    }
+
+    const batchSize = hideQueue.length > 80 ? 20 : 12;
     let processed = 0;
     while (hideQueue.length > 0 && processed < batchSize) {
       const record = hideQueue.shift();
@@ -235,7 +248,7 @@
       return;
     }
 
-    const messages = getMessageElements();
+    const messages = getMessageElements(main);
     assignStableIds(messages);
     cleanupStaleRecords(new Set(messages.map((m) => m.dataset.domlagId)));
 
@@ -289,6 +302,30 @@
     requestAnimationFrame(enforceLimit);
   }
 
+  function scheduleEnforceFromObserver() {
+    if (observerDebounceTimer) clearTimeout(observerDebounceTimer);
+    observerDebounceTimer = setTimeout(() => {
+      observerDebounceTimer = null;
+      scheduleEnforce();
+    }, 250);
+  }
+
+  function nodeLooksLikeMessage(node) {
+    if (!(node instanceof HTMLElement)) return false;
+    if (
+      node.matches("article[data-testid^='conversation-turn-']") ||
+      node.matches("main article[data-testid*='conversation-turn']") ||
+      node.matches("[data-message-author-role]")
+    ) {
+      return true;
+    }
+    return Boolean(
+      node.querySelector(
+        "article[data-testid^='conversation-turn-'], main article[data-testid*='conversation-turn'], [data-message-author-role]"
+      )
+    );
+  }
+
   function bindObserver() {
     if (observer) observer.disconnect();
     const main = document.querySelector("main");
@@ -299,13 +336,17 @@
       let relevant = false;
       for (const mutation of mutations) {
         if (mutation.type !== "childList") continue;
-        if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+        if (
+          Array.from(mutation.addedNodes).some(nodeLooksLikeMessage) ||
+          Array.from(mutation.removedNodes).some(nodeLooksLikeMessage)
+        ) {
           relevant = true;
           break;
         }
       }
       if (!relevant) return;
-      scheduleEnforce();
+      lastRelevantMutationAt = Date.now();
+      scheduleEnforceFromObserver();
     });
 
     observer.observe(main, { childList: true, subtree: true });
