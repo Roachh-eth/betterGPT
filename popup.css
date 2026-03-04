@@ -1,0 +1,110 @@
+:root {
+  --bg: #151515;
+  --panel: #1f1f1f;
+  --ink: #f6f3ef;
+  --muted: #b7ada2;
+  --accent: #ff8a1f;
+  --accent-soft: #3a2b1f;
+  --border: #3a322b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 320px;
+  background:
+    radial-gradient(circle at 90% 4%, rgba(255, 138, 31, 0.22) 0 22%, transparent 52%),
+    radial-gradient(circle at 8% 100%, rgba(255, 102, 0, 0.14) 0 24%, transparent 58%),
+    linear-gradient(140deg, #171717 0%, #111111 100%);
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.card {
+  margin: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+  color: #ffd4a8;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-row {
+  border: 1px solid var(--border);
+  background: #262626;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.control-block {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #262626;
+  border: 1px solid var(--border);
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.stats {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  padding: 3px 0;
+  color: var(--muted);
+}
+
+.stat-row strong {
+  color: #ffd9b2;
+  white-space: nowrap;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.hidden {
+  display: none;
+}

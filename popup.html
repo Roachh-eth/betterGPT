@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>betterGPT</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="card">
+      <h1>betterGPT</h1>
+
+      <label class="row toggle-row" for="enabledToggle">
+        <span>Limiter</span>
+        <input id="enabledToggle" type="checkbox" />
+      </label>
+
+      <div class="control-block">
+        <div class="label-row">
+          <label for="limitRange">Active message limit</label>
+          <strong id="limitValue">15</strong>
+        </div>
+        <input id="limitRange" type="range" min="5" max="60" step="1" value="15" />
+      </div>
+
+      <section class="stats">
+        <div class="stat-row">
+          <span>Hidden messages</span>
+          <strong id="hiddenCount">0</strong>
+        </div>
+        <div class="stat-row">
+          <span>Active messages</span>
+          <strong id="activeCount">0</strong>
+        </div>
+        <div class="stat-row">
+          <span>DOM nodes removed</span>
+          <strong id="removedNodes">0</strong>
+        </div>
+        <div class="stat-row">
+          <span>Estimated memory saved</span>
+          <strong id="memEstimate">~0.0-0.0 MB</strong>
+        </div>
+        <div class="stat-row hidden" id="heapRow">
+          <span>Heap delta (experimental)</span>
+          <strong id="heapDelta">0.0 MB</strong>
+        </div>
+      </section>
+
+      <p class="hint">Works only on chatgpt.com conversation pages.</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

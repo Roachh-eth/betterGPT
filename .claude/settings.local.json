@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(file \"/c/Dev/betterChatGPT\"/*)",
+      "Bash(grep -r \"C:\\\\\\\\\" \"/c/Dev/betterChatGPT \")",
+      "Bash(git init)",
+      "Bash(git checkout -b main)",
+      "Bash(gh auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files \\(x86\\)/GitHub CLI/gh.exe\" auth status)",
+      "Bash(cmd.exe /c \"gh auth status\")",
+      "Bash(cmd.exe /c \"where gh\")",
+      "Bash(powershell.exe -Command \"Get-Command gh -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(git config --global user.name)",
+      "Bash(git config --global user.email)",
+      "Bash(powershell.exe -Command \"winget install --id GitHub.cli --accept-source-agreements --accept-package-agreements\")",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh auth login --web -p https)",
+      "Bash(gh repo create betterGPT --public --description \"Chrome extension that reduces lag in long ChatGPT threads by virtualizing older messages\")",
+      "Bash(git add -A)",
+      "Bash(git commit -m \"Initial commit: betterGPT Chrome extension\")",
+      "Bash(git remote add origin https://github.com/Roachh-eth/betterGPT.git)",
+      "Bash(git branch -M main)",
+      "Bash(git push -u origin main)"
+    ]
+  }
+}
